@@ -4,7 +4,8 @@ document.getElementById('loginForm').addEventListener('submit', function (event)
     var requestData = {
         username: formData.get('username'),
         password: formData.get('password'),
-        server: formData.get('server')
+        server: formData.get('server'),
+        port: formData.get('port'),
     };
 
     // Assuming you're using fetch API to send the request

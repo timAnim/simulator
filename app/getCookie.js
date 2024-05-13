@@ -3,46 +3,58 @@ var { Base64 } = require("./base64.js");
 const https = require('https');
 const http = require("http");
 
-async function getCookie(host, account, pwd, cb) {
+async function getCookie(host, port, protocol, account, pwd, cb) {
 
 	console.log(`开始模拟登录${host}获取Cookie...`);
 
-	const login = function (host, port) {
-		const isHttps = /^https:\/\//.test(host);
+	const login = function () {
+		const isHttps = (protocol == "https") ? true : false;
 
-		if (port === void 0) {
-			port = isHttps ? 443 : 80;
-		}
+		let options = {}
 
-		let options = {};
 		if (isHttps) {
 			const agent = new https.Agent({
 				rejectUnauthorized: false
 			});
 			options.httpsAgent = agent;
+			options.httpsAgent.defaultPort = port;
+		}
+		options.rejectUnauthorized = false
+		options.host = host.replace('http://', '').replace('https://', '')
+		options.port = port
+		options.path = "/api/v3/auth/sso/login"
+		options.method = "POST"
+
+		let req
+
+		if (isHttps) {
+			req = https.request(options, cookieHandler);
+		}
+		else {
+			req = http.request(options, cookieHandler);
 		}
 
-		options = {
-			host: host.replace('http://', '').replace('https://', ''),
-			port: port,
-			path: "/api/v3/auth/sso/login",
-			method: "POST"
-		}
+		console.log(options)
 
-		let req = http.request(options, (res) => {
+		console.log(getParam())
+		req.write(getParam());
+		req.end();
 
+		function cookieHandler(res) {
 			let body = "";
 			res.on("data", (dt) => {
 				body += dt;
 			});
 			res.on("end", (t) => {
+
 				body = JSON.parse(body)
+
 				if (body.error_code !== "00") return null;
 				let data = body.data;
 				let cookieObj;
-				if (!data) console.log('模拟登录失败')
+				if (!data) console.log('模拟登录失败', data)
 				// spinner.succeed(chalk.green('模拟登录成功, 获取到的登录信息如下'))
-				console.log('模拟登录成功, 获取到的登录信息如下')
+				console.log('模拟登录', body)
 				cookieObj = {
 					PROXY_HOST: host,
 					USER_ID: data.id,
@@ -54,12 +66,12 @@ async function getCookie(host, account, pwd, cb) {
 					THEME: !!data.pickedSkin ? data.pickedSkin : "default"
 				};
 				cb(cookieObj)
-			});
-		});
+			})
 
-		req.write(getParam());
-		req.end();
+		};
+
 	};
+
 
 	const getParam = function () {
 		var loginData = {
@@ -84,10 +96,7 @@ async function getCookie(host, account, pwd, cb) {
 	};
 
 	// spinner.start();
-	const data = await login(`${host}`);
-
-	console.log(data)
-
+	const data = await login();
 
 	let cookieObj;
 	if (!data) {

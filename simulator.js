@@ -1,11 +1,14 @@
 const { connect, StringCodec } = require("nats");
 const http = require("http");
+const https = require("https");
 const fs = require("fs");
 const path = require("path");
 const exportExcel = require("./assets/luckysheet/exportExcel.js");
-const NATS_PORT = 6882;
+let NATS_PORT = 6882;
 const SERVER_PORT = 20001;
+let KE_PORT = 80;
 let NATS_SERVER = "120.77.54.131";
+let isHttps = false;
 const getCookie = require("./app/getCookie.js");
 const { getIP } = require('./app/query_dns.js')
 const { exec } = require('child_process');
@@ -86,7 +89,6 @@ async function handleRequest(req, res) {
   }
 
   if (req.url === "/last") {
-    // 处理 /favicon.ico 请求
     res.statusCode = 200;
 
     let body = "";
@@ -105,7 +107,7 @@ async function handleRequest(req, res) {
 
       const options = {
         host: NATS_SERVER,
-        port: 80,
+        port: KE_PORT,
         path: "/api/v2/cmdb/resources/items",
         method: "POST",
         headers: {
@@ -113,9 +115,19 @@ async function handleRequest(req, res) {
           'Content-Type': 'application/x-www-form-urlencode;charset=utf-8',
           'Content-Length': Buffer.byteLength(JSON.stringify(reqData))
         },
+        rejectUnauthorized: false
       };
 
-      const ke_request = http.request(options, (ke_response) => {
+      console.log(options)
+
+
+
+      let ke_request
+
+      if (isHttps) ke_request = https.request(options, lastHandle);
+      else ke_request = http.request(options, lastHandle);
+
+      function lastHandle(ke_response) {
         let items = "";
         ke_response.on("data", (dt) => {
           items += dt;
@@ -124,7 +136,8 @@ async function handleRequest(req, res) {
           return res.end(items.toString("utf8"));
         });
         return
-      });
+      }
+
       ke_request.write(JSON.stringify(reqData));
       ke_request.end()
       return
@@ -141,10 +154,26 @@ async function handleRequest(req, res) {
     });
     req.on("end", function () {
       let data = JSON.parse(body)
-      getCookie(data.server, data.username, data.password, cookie => {
-        getIP(data.server, ip => {
-          NATS_SERVER = ip
-          cookie.server = ip
+      // NATS 的端口号是用户输入的
+      NATS_PORT = data.port
+
+      console.log(data)
+
+      const parsedUrl = new URL(data.server);
+
+      // 获取主机、端口和协议
+      const host = parsedUrl.hostname;
+      const port = parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80);
+      const protocol = parsedUrl.protocol.slice(0, -1); // 去掉末尾的冒号
+
+      getCookie(host, port, protocol, data.username, data.password, cookie => {
+        getIP(data.server, url => {
+          // KE服务器，是否是HTTS、KE端口号是解析的
+          KE_PORT = url.port
+          NATS_SERVER = url.host
+          isHttps = url.protocol == "https" ? true : false
+          cookie.server = url.host
+          console.log(KE_PORT, NATS_SERVER, isHttps, 11111111111111)
           return res.end(JSON.stringify(cookie))
         })
       })
