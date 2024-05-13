@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8" />
+	<title>DC simulator</title>
+	<link rel="stylesheet" href="/assets/luckysheet/plugins/css/pluginsCss.css" />
+	<link rel="stylesheet" href="/assets/luckysheet/plugins/plugins.css" />
+	<link rel="stylesheet" href="/assets/luckysheet/css/luckysheet.css" />
+	<link rel="stylesheet" href="/assets/luckysheet/assets/iconfont/iconfont.css" />
+	<link rel="stylesheet" href="/assets/css/index.css" />
+	<script src="/assets/luckysheet/plugins/js/plugin.js"></script>
+	<script src="/assets/luckysheet/luckysheet.umd.js"></script>
+	<script src="/assets/luckysheet/exceljs.js"></script>
+	<script src="/assets/luckyexcel.umd.js"></script>
+	<script src="/assets/js/initSimuData.js"></script>
+	<script src="/assets/js/ajax.js"></script>
+	<script src="/assets/js/eventInit.js"></script>
+	<script src="/assets/js/cellDragStop.js"></script>
+	<script src="/assets/js/cellUpdated.js"></script>
+</head>
+
+<body>
+	<div id="lucky-mask-demo">Downloading</div>
+	<div id="luckysheet"></div>
+	<script>
+		!(function (window) {
+
+			let mask = document.getElementById("lucky-mask-demo");
+			let luckysheetfl
+			let server = localStorage.getItem('server')
+			window.updateLocker = true
+			window.luckysheetOptions = {
+				container: "luckysheet", //luckysheet is the container id
+				showinfobar: true,
+				showtoolbar: false,
+				showstatisticBar: false,
+				showsheetbarConfig: {
+					add: false, //新增sheet  
+					menu: false, //sheet管理菜单
+				},
+				logotitle: 'eieie',
+				functionButton: `
+				<input type="file" style="display:none" id="Luckyexcel-demo-file" name="Luckyexcel-demo-file" change="demoHandler" />
+				<button id="Luckyexcel-driver" class="btn btn-primary">点表</button>
+				<button id="Luckyexcel-import" class="btn btn-primary">导入</button>
+				<button id="Luckyexcel-downlod-file" class="btn btn-primary">下载</button>
+				<button id="Luckyexcel-save-file" class="btn btn-primary">保存</button>
+				<button id="send-btn" class="btn btn-primary">发送</button>`,
+				myFolderUrl: "/login",
+				userInfo: server,
+
+				userMenuItem: [{ url: "www.baidu.com", "icon": '<i class="fa fa-folder" aria-hidden="true"></i>', "name": "我的表格" }, { url: "www.baidu.com", "icon": '<i class="fa fa-sign-out" aria-hidden="true"></i>', "name": "退出登陆" }],
+				hook: {
+					cellDragStop,
+					cellUpdated,
+					workbookCreateAfter: function () {
+						console.log('workbookCreateAfter')
+					}
+				}
+			}
+
+			LuckyExcel.transformExcelToLuckyByUrl(
+				"/config/point.xlsx",
+				name,
+				sheetInited,
+			);
+
+			function sheetInited(exportJson, luckysheetfile) {
+				if (exportJson.sheets == null || exportJson.sheets.length == 0) {
+					alert("Failed to read the content of the excel file, currently does not support xls files!")
+					return;
+				}
+				mask.style.display = "none";
+				window.luckysheet.destroy();
+				window.luckysheetOptions.data = exportJson.sheets
+				window.luckysheetOptions.title = exportJson.info.name
+				window.luckysheet.create(luckysheetOptions);
+
+				initSimuData(luckysheet);
+				eventInit();
+			}
+		})(window);
+
+	</script>
+</body>
+
+</html>
