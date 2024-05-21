@@ -3,15 +3,18 @@ const ExcelJS = require('exceljs');
 const fs = require('fs');
 
 
-var exportExcel = async function (luckysheet) {
+var exportExcel = async function (luckysheet, filePath) {
     // 参数为luckysheet.getluckysheetfile()获取的对象
     // 1.创建工作簿，可以为工作簿添加属性
     const workbook = new ExcelJS.Workbook();
     // 2.创建表格，第二个参数可以配置创建什么样的工作表
+
     luckysheet.every(function (table) {
-        // console.log(JSON.stringify(table.data));
+        
         if (table.data.length === 0) return true;
+
         const worksheet = workbook.addWorksheet(table.name);
+
         // 3.设置单元格合并,设置单元格边框,设置单元格样式,设置值
         setStyleAndValue(table.data, worksheet);
         setMerge(table.config.merge, worksheet);
@@ -25,12 +28,12 @@ var exportExcel = async function (luckysheet) {
     // 下载 excel
     workbook.xlsx.writeBuffer().then((buf) => {
 
-        fs.writeFile('./config/point.xlsx', buf, (err) => {
+        fs.writeFile(filePath, buf, (err) => {
             if (err) {
                 console.error('写入文件时发生错误:', err);
-                return Promise.resolve("/config/point.xlsx");
+                return Promise.resolve(filePath);
             }
-            console.log('文件已成功写入: point.xlsx');
+            console.log('文件已成功写入:' + filePath);
             return Promise.resolve();
         });
     });
@@ -137,7 +140,7 @@ var setStyleAndValue = function (cellArr, worksheet) {
 
             // console.log(JSON.stringify(cell));
             var v = "";
-            if (cell.ct.t == "inlineStr") {
+            if (cell.ct && cell.ct.t && cell.ct.t == "inlineStr") {
                 var s = cell.ct.s;
                 s.forEach(function (val, num) {
                     v += val.v;

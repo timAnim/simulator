@@ -80,30 +80,16 @@ function eventInit() {
         });
 
         return console.log(luckysheetfl);
-
-        var obj = selectADemo;
-        var index = obj.selectedIndex;
-        var value = obj.options[index].value;
-
-        if (value.length == 0) {
-            alert("Please select a demo file");
-            return;
-        }
-
-        var elemIF = document.getElementById("Lucky-download-frame");
-        if (elemIF == null) {
-            elemIF = document.createElement("iframe");
-            elemIF.style.display = "none";
-            elemIF.id = "Lucky-download-frame";
-            document.body.appendChild(elemIF);
-        }
-        elemIF.src = value;
     });
 
     sendBtn.addEventListener("click", updateVal);
 
     saveBtn.addEventListener("click", function (evt) {
         luckysheetfl = luckysheet.getluckysheetfile()
+        // luckysheet.getAllSheets()[0]
+        luckysheetfl.forEach(fl => {
+            fl.data = luckysheet.getSheetData({ order: fl.order })
+        })
         ajax("/save", luckysheetfl, "POST", function (res) {
             return console.log(res);
         })
@@ -133,7 +119,7 @@ function sendDCSheet(sheet) {
 
         if (i <= 4) return false
         resource_id = luckysheet.getCellValue(i, 1);
-        if(!resource_id) return false
+        if (!resource_id) return false
         console.log(resource_id)
         value = luckysheet.getCellValue(i, 3);
         type_id = resource_id.split("_")[2];
@@ -162,7 +148,7 @@ function sendDCSheet(sheet) {
 function sendPointSheet(sheet) {
     let point_arr = dataTransfer(sheet).resArr;
 
-    console.log(point_arr)
+    // console.log(point_arr)
 
     let res = [];
     let dev_id = point_arr[0][1].split("_")[1];
@@ -213,7 +199,7 @@ function genDriver(ev) {
         "是否展示",
         "优先级",
     ];
-    let standard_id = `${arr[2][3].v}_${arr[3][3].v}_${arr[4][3].v}`
+    // let standard_id = `${arr[2][3].v}_${arr[3][3].v}_${arr[4][3].v}`
     resArr.push(th);
     arr.forEach((ele, i) => {
         if (i <= 4) return false
@@ -238,6 +224,71 @@ function genDriver(ev) {
             "",
         ];
     });
+    let driver = [];
+
+    for (let r = 0; r < resArr.length; r++) {
+        for (let c = 0; c < resArr[r].length; c++) {
+            driver.push({
+                "r": r,
+                "c": c,
+                "v": {
+                    "ct": {
+                        "fa": "General",
+                        "t": "s"
+                    },
+                    "fs": 13,
+                    "fc": "#000000",
+                    "ff": "宋体",
+                    "ht": 0,
+                    "vt": 0,
+                    "tb": 1,
+                    "v": resArr[r][c],
+                    "qp": 1
+                }
+            });
+        }
+    }
+
+    LuckyExcel.transformExcelToLuckyByUrl(
+        "/config/driver.xlsx",
+        'driver',
+        function (exportJson, luckysheetfile) {
+            if (
+                exportJson.sheets == null ||
+                exportJson.sheets.length == 0
+            ) {
+                alert(
+                    "Failed to read the content of the excel file, currently does not support xls files!"
+                );
+                return;
+            }
+
+            exportJson.sheets.forEach(sheet=>{
+                sheet.data = tranCelldataToData(sheet.celldata);
+            })
+
+            exportJson.sheets[1].celldata = driver;
+            exportJson.sheets[1].data = tranCelldataToData(driver);
+
+            ajax("/driver", exportJson.sheets, "POST", function (res) {
+                return console.log(res);
+            })
+        }
+    );
+
+    function tranCelldataToData(celldata) {
+        let resArr = [];
+        celldata.forEach(cell => {
+            console.log(cell)
+            if(!resArr[cell.r]){
+                resArr[cell.r] = []
+            }
+            resArr[cell.r][cell.c] = cell.v
+        })
+        return resArr
+    }
+
+    return
 
     let csvContent = "data:text/csv;charset=utf-8,";
     resArr.forEach((row) => {

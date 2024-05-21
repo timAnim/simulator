@@ -29,11 +29,13 @@
 			let mask = document.getElementById("lucky-mask-demo");
 			let luckysheetfl
 			let server = localStorage.getItem('server')
-			window.updateLocker = true
 			window.luckysheetOptions = {
 				container: "luckysheet", //luckysheet is the container id
 				showinfobar: true,
 				showtoolbar: false,
+				lang: "zh",
+				column: 10,
+				row: 200,
 				showstatisticBar: false,
 				showsheetbarConfig: {
 					add: false, //新增sheet  
@@ -50,10 +52,14 @@
 				myFolderUrl: "/login",
 				userInfo: server,
 
-				userMenuItem: [{ url: "www.baidu.com", "icon": '<i class="fa fa-folder" aria-hidden="true"></i>', "name": "我的表格" }, { url: "www.baidu.com", "icon": '<i class="fa fa-sign-out" aria-hidden="true"></i>', "name": "退出登陆" }],
+				userMenuItem: [{ url: "www.baidu.com", "icon": '<i class="fa fa-folder"></i>', "name": "我的表格" },
+				{ url: "www.baidu.com", "icon": '<i class="fa fa-sign-out"></i>', "name": "退出登陆" }],
 				hook: {
 					cellDragStop,
 					cellUpdated,
+					cellEditBefore: function (a, b, c) {
+						console.log('cellEditBefore', a, b, c)
+					},
 					workbookCreateAfter: function () {
 						console.log('workbookCreateAfter')
 					}
@@ -62,7 +68,7 @@
 
 			LuckyExcel.transformExcelToLuckyByUrl(
 				"/config/point.xlsx",
-				name,
+				server,
 				sheetInited,
 			);
 
@@ -80,6 +86,7 @@
 				initSimuData(luckysheet);
 				eventInit();
 			}
+
 		})(window);
 
 	</script>

@@ -34,9 +34,9 @@ async function getCookie(host, port, protocol, account, pwd, cb) {
 			req = http.request(options, cookieHandler);
 		}
 
-		console.log(options)
+		// console.log(options)
 
-		console.log(getParam())
+		// console.log(getParam())
 		req.write(getParam());
 		req.end();
 
@@ -54,7 +54,7 @@ async function getCookie(host, port, protocol, account, pwd, cb) {
 				let cookieObj;
 				if (!data) console.log('模拟登录失败', data)
 				// spinner.succeed(chalk.green('模拟登录成功, 获取到的登录信息如下'))
-				console.log('模拟登录', body)
+				// console.log('模拟登录', body)
 				cookieObj = {
 					PROXY_HOST: host,
 					USER_ID: data.id,
@@ -100,7 +100,7 @@ async function getCookie(host, port, protocol, account, pwd, cb) {
 
 	let cookieObj;
 	if (!data) {
-		console.log('模拟登录失败')
+		// console.log('模拟登录失败')
 	} else {
 		// spinner.succeed(chalk.green('模拟登录成功, 获取到的登录信息如下'))
 		console.log('模拟登录成功, 获取到的登录信息如下')

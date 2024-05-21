@@ -1,3 +1,5 @@
+let remind = true
+
 document.getElementById('loginForm').addEventListener('submit', function (event) {
     event.preventDefault(); // Prevent form submission
     var formData = new FormData(this);
@@ -20,6 +22,7 @@ document.getElementById('loginForm').addEventListener('submit', function (event)
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
+            saveData(requestData)
             return response.json();
         })
         .then(data => {
@@ -38,3 +41,46 @@ document.getElementById('loginForm').addEventListener('submit', function (event)
             document.getElementById('response').innerText = 'Error: ' + error.message;
         });
 });
+
+document.getElementById('remind').addEventListener('change', function (ev) {
+    console.log(ev.target.checked)
+    remind = ev.target.checked
+})
+
+// 默认数据
+
+var defaultData = {
+    username: "admin",
+    password: "3DXT@2022",
+    server: "http://td.yunyunwei.com",
+    port: "6882",
+};
+
+// 获取本地存储中的登录数据
+function loadData() {
+    const storedData = localStorage.getItem('loginData');
+    let loginData;
+
+    if (storedData) {
+        loginData = JSON.parse(storedData);
+        remind = document.getElementById('remind').checked
+
+    } else {
+        loginData = defaultData;
+    }
+
+    // 填充数据
+    document.getElementById('username').value = loginData.username;
+    document.getElementById('password').value = loginData.password;
+    document.getElementById('server').value = loginData.server;
+    document.getElementById('port').value = loginData.port;
+
+}
+
+// 保存数据到本地存储
+function saveData(formData) {
+    localStorage.setItem('loginData', JSON.stringify(formData));
+}
+
+// 页面加载时调用loadData函数
+window.onload = loadData;

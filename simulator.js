@@ -45,7 +45,7 @@ async function handleRequest(req, res) {
       body += dt;
     });
     req.on("end", function () {
-      exportExcel(JSON.parse(body).data).then(msg => {
+      exportExcel(JSON.parse(body).data, "./config/point.xlsx").then(msg => {
         // return console.log(JSON.parse(body).data)
         return res.end("Success")
       })
@@ -64,7 +64,7 @@ async function handleRequest(req, res) {
     });
     req.on("end", function () {
       console.log(JSON.parse(body).data)
-      exportExcel(JSON.parse(body).data).then(msg => {
+      exportExcel(JSON.parse(body).data, "./config/point.xlsx").then(msg => {
         return res.end("/config/point.xlsx")
       })
     });
@@ -156,8 +156,7 @@ async function handleRequest(req, res) {
       let data = JSON.parse(body)
       // NATS 的端口号是用户输入的
       NATS_PORT = data.port
-
-      console.log(data)
+      // console.log(data)
 
       const parsedUrl = new URL(data.server);
 
@@ -167,13 +166,14 @@ async function handleRequest(req, res) {
       const protocol = parsedUrl.protocol.slice(0, -1); // 去掉末尾的冒号
 
       getCookie(host, port, protocol, data.username, data.password, cookie => {
+
         getIP(data.server, url => {
           // KE服务器，是否是HTTS、KE端口号是解析的
           KE_PORT = url.port
           NATS_SERVER = url.host
           isHttps = url.protocol == "https" ? true : false
           cookie.server = url.host
-          console.log(KE_PORT, NATS_SERVER, isHttps, 11111111111111)
+          // console.log(KE_PORT, NATS_SERVER, isHttps)
           return res.end(JSON.stringify(cookie))
         })
       })
@@ -265,27 +265,20 @@ async function handleRequest(req, res) {
   }
 
   if (req.url == "/driver") {
+    // 处理 /favicon.ico 请求
+    res.statusCode = 200;
+
     let body = "";
     req.on("data", function (dt) {
       body += dt;
     });
+
     req.on("end", function () {
-      res.statusCode = 200;
-      res.end(body);
-    })
-  }
-
-  return false;
-
-  // 解析 URL 参数
-  const urlParams = new URLSearchParams(req.url.slice(1));
-  // 获取前端传递的参数
-  const dev_id = urlParams.get("dev_id");
-  console.log(dev_id);
-  if (!dev_id) {
-    console.error("dev_id is null");
-    res.statusCode = 400;
-    res.end("dev_id is null");
+      // console.log(JSON.parse(body).data)
+      exportExcel(JSON.parse(body).data, "./config/driver.xlsx").then(msg => {
+        return res.end("/config/driver.xlsx")
+      })
+    });
     return;
   }
 }
