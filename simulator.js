@@ -3,7 +3,7 @@ const http = require("http");
 const https = require("https");
 const fs = require("fs");
 const path = require("path");
-const exportExcel = require("./assets/luckysheet/exportExcel.js");
+const exportExcel = require("./app/exportExcel.js");
 let NATS_PORT = 6882;
 const SERVER_PORT = 20001;
 let KE_PORT = 80;
@@ -13,6 +13,7 @@ const getCookie = require("./app/getCookie.js");
 const { getIP } = require('./app/query_dns.js')
 const { exec } = require('child_process');
 
+cpConfigFile()
 
 async function Publish(data) {
   // to create a connection to a nats-server:
@@ -45,6 +46,8 @@ async function handleRequest(req, res) {
       body += dt;
     });
     req.on("end", function () {
+      console.log(JSON.parse(body).data[1].config.columnlen)
+
       exportExcel(JSON.parse(body).data, "./config/point.xlsx").then(msg => {
         // return console.log(JSON.parse(body).data)
         return res.end("Success")
@@ -64,8 +67,8 @@ async function handleRequest(req, res) {
     });
     req.on("end", function () {
       console.log(JSON.parse(body).data)
-      exportExcel(JSON.parse(body).data, "./config/point.xlsx").then(msg => {
-        return res.end("/config/point.xlsx")
+      exportExcel(JSON.parse(body).data, "./point.xlsx").then(msg => {
+        return res.end("./point.xlsx")
       })
     });
     return;
@@ -275,8 +278,8 @@ async function handleRequest(req, res) {
 
     req.on("end", function () {
       // console.log(JSON.parse(body).data)
-      exportExcel(JSON.parse(body).data, "./config/driver.xlsx").then(msg => {
-        return res.end("/config/driver.xlsx")
+      exportExcel(JSON.parse(body).data, "./driver.xlsx").then(msg => {
+        return res.end("./driver.xlsx")
       })
     });
     return;
@@ -321,6 +324,25 @@ function fetchItems(cb) {
 
   req.write(JSON.stringify(dt));
   req.end();
+}
+
+function cpConfigFile() {
+  // 复制配置文件
+  let configFile = path.join(__dirname, "./config/point.xlsx");
+  // let newConfigFile = path.join(__dirname, "../point.xlsx");
+  // if (fs.existsSync(configFile) && !fs.existsSync(newConfigFile)) {
+  //   console.log(__dirname)
+  //   console.log(newConfigFile)
+  //   fs.copyFileSync(configFile, newConfigFile);
+  // }
+
+  // 复制配置文件
+  configFile = path.join(__dirname, "./config/driver.xlsx");
+  newConfigFile = path.join(__dirname, "../driver.xlsx");
+  if (fs.existsSync(configFile) && !fs.existsSync(newConfigFile)) {
+    console.log(configFile, newConfigFile)
+    fs.copyFileSync(configFile, newConfigFile);
+  }
 }
 
 // 创建 HTTP 服务器

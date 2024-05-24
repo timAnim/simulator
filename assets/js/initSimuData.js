@@ -9,6 +9,8 @@ function initSimuData(luckysheet) {
     luckysheet.setSheetActive(1)
     luckysheet.setHorizontalFrozen(false)
     setStyle()
+    setColumnWidth(luckysheet.getAllSheets()[1])
+
     refreshDCSheet()
 }
 
@@ -71,7 +73,7 @@ function refreshDCSheet() {
                 // continue
                 if (!window[row[0]][row[2]]) console.log(row)
                 // opt.v = window[row[0]][row[2]] || 0
-                luckysheet.setCellValue(i + 1, 3,  window[row[0]][row[2]], { isRefresh: false });
+                luckysheet.setCellValue(i + 1, 3, window[row[0]][row[2]], { isRefresh: false });
             }
         };
     }
@@ -141,6 +143,13 @@ function setStyle() {
             luckysheet.setCellValue(cell.r, cell.c, opt, ref)
         }
     };
+}
+
+var setColumnWidth = function (worksheet) {
+    let columnwidth = worksheet.config.columnWidth
+    for (let key in columnwidth) {
+        worksheet.getcolumn(parseInt(key) + 1).width = columnWidth[key] / 7.5
+    }
 }
 
 // 数据预处理
