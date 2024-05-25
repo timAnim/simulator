@@ -3,11 +3,11 @@ var { Base64 } = require("./base64.js");
 const https = require('https');
 const http = require("http");
 
-async function getCookie(host, port, protocol, account, pwd, cb) {
+async function getCookie(host, port, protocol, account, pwd) {
 
 	console.log(`开始模拟登录${host}获取Cookie...`);
 
-	const login = function () {
+	const login = new Promise((resolve, reject) => {
 		const isHttps = (protocol == "https") ? true : false;
 
 		let options = {}
@@ -19,6 +19,7 @@ async function getCookie(host, port, protocol, account, pwd, cb) {
 			options.httpsAgent = agent;
 			options.httpsAgent.defaultPort = port;
 		}
+
 		options.rejectUnauthorized = false
 		options.host = host.replace('http://', '').replace('https://', '')
 		options.port = port
@@ -34,9 +35,6 @@ async function getCookie(host, port, protocol, account, pwd, cb) {
 			req = http.request(options, cookieHandler);
 		}
 
-		// console.log(options)
-
-		// console.log(getParam())
 		req.write(getParam());
 		req.end();
 
@@ -48,8 +46,9 @@ async function getCookie(host, port, protocol, account, pwd, cb) {
 			res.on("end", (t) => {
 
 				body = JSON.parse(body)
+				console.log('模拟登录', body)
 
-				if (body.error_code !== "00") return null;
+				if (body.error_code !== "00") resolve(null);
 				let data = body.data;
 				let cookieObj;
 				if (!data) console.log('模拟登录失败', data)
@@ -65,15 +64,13 @@ async function getCookie(host, port, protocol, account, pwd, cb) {
 					X_GU_SID: data.session,
 					THEME: !!data.pickedSkin ? data.pickedSkin : "default"
 				};
-				cb(cookieObj)
+				resolve(cookieObj)
 			})
 
 		};
+	});
 
-	};
-
-
-	const getParam = function () {
+	function getParam() {
 		var loginData = {
 			account: account,
 			password: pwd
@@ -83,7 +80,7 @@ async function getCookie(host, port, protocol, account, pwd, cb) {
 		return JSON.stringify(param);
 	};
 
-	const AESEncrypto = function (str) {
+	function AESEncrypto(str) {
 		var key = CryptoJS.enc.Utf8.parse("gongjikeji201909");
 		// 加密结果返回的是CipherParams object类型
 		var encrypted = CryptoJS.AES.encrypt(str, key, {
@@ -95,28 +92,7 @@ async function getCookie(host, port, protocol, account, pwd, cb) {
 		return encrypted.toString();
 	};
 
-	// spinner.start();
-	const data = await login();
-
-	let cookieObj;
-	if (!data) {
-		// console.log('模拟登录失败')
-	} else {
-		// spinner.succeed(chalk.green('模拟登录成功, 获取到的登录信息如下'))
-		console.log('模拟登录成功, 获取到的登录信息如下')
-		cookieObj = {
-			PROXY_HOST: host,
-			USER_ID: data.id,
-			USER_NAME_DECODE: data.name,
-			USER_NAME: Base64.encode(data.name).toString(),
-			ACCOUNT: Base64.encode(data.account).toString(),
-			ACCOUNT_DECODE: data.account,
-			X_GU_SID: data.session,
-			THEME: !!data.pickedSkin ? data.pickedSkin : "default"
-		};
-	}
-
-	return cookieObj;
+	return await login;
 };
 
 // getCookie('http://td.yunyunwei.com', 'admin', '3DXT@2022') 

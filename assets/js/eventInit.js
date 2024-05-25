@@ -1,13 +1,11 @@
 
 function eventInit() {
     let upload = document.getElementById("Luckyexcel-demo-file");
-    let downlodDemo = document.getElementById("Luckyexcel-downlod-file");
+    let downloadBtn = document.getElementById("Luckyexcel-downlod-file");
     let saveBtn = document.getElementById("Luckyexcel-save-file")
     let sendBtn = document.getElementById("send-btn");
     let uploadBtn = document.getElementById("Luckyexcel-import");
     let driverBtn = document.getElementById("Luckyexcel-driver");
-
-    if (!upload) return false
 
     upload.addEventListener("change", function (evt) {
         var files = evt.target.files;
@@ -47,68 +45,40 @@ function eventInit() {
         upload.click();
     });
 
-    downlodDemo.addEventListener("click", function (evt) {
-        // exportExcel(luckysheet.getluckysheetfile());
-
+    downloadBtn.addEventListener("click", function (evt) {
         let luckysheetfl = luckysheet.getluckysheetfile();
 
         ajax("/saveas", luckysheetfl, "POST", function (res) {
-            console.log(res);
-
-            fetch(res, {
-                method: "GET",
-            })
-                .then((response) => response.blob())
-                .then((blob) => {
-                    // 生成 Blob URL
-                    const url = URL.createObjectURL(blob);
-
-                    // 创建隐藏的链接并点击触发下载
-                    const a = document.createElement("a");
-                    a.style.display = "none";
-                    a.href = url;
-                    a.download = "file.xlsx";
-                    document.body.appendChild(a);
-                    a.click();
-
-                    // 释放 Blob URL
-                    URL.revokeObjectURL(url);
-                })
-                .catch((error) => {
-                    console.error("下载文件时发生错误:", error);
-                });
+            console.log(res)
+            if (res) downloadByUrl(res, "output_point.xlsx");
         });
-
-        return console.log(luckysheetfl);
     });
 
-    sendBtn.addEventListener("click", updateVal);
-
-    saveBtn.addEventListener("click", function (evt) {
-        luckysheetfl = luckysheet.getluckysheetfile()
-        // luckysheet.getAllSheets()[0]
-        luckysheetfl.forEach(fl => {
-            fl.data = luckysheet.getSheetData({ order: fl.order })
-        })
-        ajax("/save", luckysheetfl, "POST", function (res) {
-            return console.log(res);
-        })
-    });
-
-    driverBtn.addEventListener("click", genDriver)
-
-    function updateVal() {
+    sendBtn.addEventListener("click", function () {
         let point_data;
         if (luckysheet.sheetmanage.getCurSheet() == 1) {
             point_data = sendPointSheet(luckysheet.getAllSheets()[0])
         } else {
             point_data = sendDCSheet(luckysheet.getAllSheets()[1])
         }
-
-        ajax("/update", point_data, "POST", function (data) {
+        ajax("/publish", point_data, "POST", function (data) {
             console.log(data);
         });
-    }
+    });
+
+    saveBtn.addEventListener("click", function (evt) {
+        luckysheetfl = luckysheet.getluckysheetfile()
+        luckysheetfl.forEach(fl => {
+            fl.data = luckysheet.getSheetData({ order: fl.order })
+        })
+        ajax("/save", luckysheetfl, "POST", function (res) {
+            console.log(res);
+        })
+    });
+
+    driverBtn.addEventListener("click", genDriver)
+
+
 }
 
 function sendDCSheet(sheet) {
@@ -144,7 +114,6 @@ function sendDCSheet(sheet) {
     };
 }
 
-
 function sendPointSheet(sheet) {
     let point_arr = dataTransfer(sheet).resArr;
 
@@ -175,6 +144,31 @@ function sendPointSheet(sheet) {
         resource_id: "0_" + dev_id,
         values: res,
     };
+}
+
+function downloadByUrl(url, name) {
+    fetch(url, {
+        method: "GET",
+    })
+        .then((res) => res.blob())
+        .then((blob) => {
+            // 生成 Blob URL
+            const url = URL.createObjectURL(blob);
+
+            // 创建隐藏的链接并点击触发下载
+            const a = document.createElement("a");
+            a.style.display = "none";
+            a.href = url;
+            a.download = name;
+            document.body.appendChild(a);
+            a.click();
+
+            // 释放 Blob URL
+            URL.revokeObjectURL(url);
+        })
+        .catch((error) => {
+            console.error("下载文件时发生错误:", error);
+        });
 }
 
 function genDriver(ev) {
@@ -263,7 +257,7 @@ function genDriver(ev) {
                 return;
             }
 
-            exportJson.sheets.forEach(sheet=>{
+            exportJson.sheets.forEach(sheet => {
                 sheet.data = tranCelldataToData(sheet.celldata);
             })
 
@@ -271,7 +265,7 @@ function genDriver(ev) {
             exportJson.sheets[1].data = tranCelldataToData(driver);
 
             ajax("/driver", exportJson.sheets, "POST", function (res) {
-                return console.log(res);
+                downloadByUrl(res, "driver.xlsx");
             })
         }
     );
@@ -280,20 +274,11 @@ function genDriver(ev) {
         let resArr = [];
         celldata.forEach(cell => {
             console.log(cell)
-            if(!resArr[cell.r]){
+            if (!resArr[cell.r]) {
                 resArr[cell.r] = []
             }
             resArr[cell.r][cell.c] = cell.v
         })
         return resArr
     }
-
-    return
-
-    let csvContent = "data:text/csv;charset=utf-8,";
-    resArr.forEach((row) => {
-        csvContent += row.join(",") + "\n";
-    });
-
-    window.open(csvContent);
 }

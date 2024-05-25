@@ -11,7 +11,7 @@ body {
   }
   
   .container {
-    width: 300px;
+    width: 280px;
     padding: 20px;
     background-color: #fff;
     border-radius: 5px;
@@ -26,10 +26,16 @@ body {
     display: block;
     margin-bottom: 5px;
   }
+
+  label[for="remind"]{
+    display: inline-block;
+    margin-top: 16px;
+  }
   
   input[type="text"],
   input[type="password"] {
-    width: 100%;
+    box-sizing: border-box;
+    width: 280px;
     padding: 8px;
     border: 1px solid #ccc;
     border-radius: 3px;

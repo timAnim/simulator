@@ -1,26 +1,28 @@
 {
   "name": "simulator",
   "version": "1.0.0",
-  "main": "simulator.js",
+  "main": "main.js",
   "dependencies": {
     "nats": "^2.26.0"
   },
-  "bin": "simulator.js",
+  "bin": "main.js",
   "pkg": {
     "assets": [
       "assets/**/*",
       "assets/luckysheet/*",
       "assets/luckysheet/**/*",
       "assets/*",
+      "controllers/*",
       "config/*"
     ],
     "scripts": [
-      "app/*"
+      "app/*",
+      "controllers/*"
     ]
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "pkg": "pkg . -t node12-win-x64 -o run"
+    "pkg": "pkg . -t node12-win-x64 -o simu"
   },
   "author": "",
   "license": "ISC",

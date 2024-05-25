@@ -1,5 +1,4 @@
-require('./polyfill.js');
-const ExcelJS = require('./exceljs.js');
+const ExcelJS = require('./exceljs.bare.min.js');
 const fs = require('fs');
 let columnWidth
 

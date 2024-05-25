@@ -68,10 +68,10 @@ function refreshDCSheet() {
                 try {
                     window[row[0]][row[2]] = eval(row[4])
                 } catch (error) {
-                    console.log(row)
+                    console.log(`【公式错误】${row[0]}-${row[2]}——${row[4]}`)
                 }
+                // if (!window[row[0]][row[2]]) console.log(`${row[0]}${row[2]}公式：${row[4]}出现错误`)
                 // continue
-                if (!window[row[0]][row[2]]) console.log(row)
                 // opt.v = window[row[0]][row[2]] || 0
                 luckysheet.setCellValue(i + 1, 3, window[row[0]][row[2]], { isRefresh: false });
             }
