@@ -27,7 +27,7 @@ document.getElementById('loginForm').addEventListener('submit', function (event)
             return response.json();
         })
         .then(data => {
-
+            data = JSON.parse(data)
             if (!data.server) {
                 document.getElementById('response').innerText = "账户密码不匹配"
             } else {

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "main.js",
   "dependencies": {
+    "mime-types": "^2.1.35",
     "nats": "^2.26.0"
   },
   "bin": "main.js",
@@ -22,7 +23,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "pkg": "pkg . -t node12-win-x64 -o ../simu.exe"
+    "pkg": "pkg . -t node12-win-x64 -o simu.exe"
   },
   "author": "",
   "license": "ISC",

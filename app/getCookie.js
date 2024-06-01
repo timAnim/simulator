@@ -46,7 +46,7 @@ async function getCookie(host, port, protocol, account, pwd) {
 			res.on("end", (t) => {
 
 				body = JSON.parse(body)
-				console.log('模拟登录', body)
+				// console.log('模拟登录', body)
 
 				if (body.error_code !== "00") resolve(null);
 				let data = body.data;

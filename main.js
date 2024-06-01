@@ -2,6 +2,9 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const { exec } = require('child_process');
+const mime = require('mime-types');
+const cwd = process.cwd()
+
 
 // 常量
 const SERVER_PORT = 20001;
@@ -41,10 +44,12 @@ async function handleRequest(req, res) {
 
     if (req.url === "/login") filePath = path.resolve(__dirname, "assets", "login.html")
 
+    if (req.url === "/usr/driver") filePath = path.join(cwd, "driver.xlsx")
+
+    if (req.url === "/usr/point") filePath = path.join(cwd, "point.xlsx")
+
     // 如果路径是一个目录，则默认返回 index.html 文件
-    if (fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) {
-      filePath = path.join(filePath, 'index.html');
-    }
+    if (fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) filePath = path.join(filePath, 'index.html');
 
     // 读取文件
     fs.readFile(filePath, (err, data) => {
@@ -54,27 +59,8 @@ async function handleRequest(req, res) {
       } else {
         // 根据文件扩展名设置 Content-Type
         const extname = path.extname(filePath);
-        let contentType = 'text/html';
-        switch (extname) {
-          case '.js':
-            contentType = 'text/javascript';
-            break;
-          case '.css':
-            contentType = 'text/css';
-            break;
-          case '.json':
-            contentType = 'application/json';
-            break;
-          case '.png':
-            contentType = 'image/png';
-            break;
-          case '.jpg':
-            contentType = 'image/jpeg';
-            break;
-          case '.gif':
-            contentType = 'image/gif';
-            break;
-        }
+
+        let contentType = mime.contentType(extname) || 'text/html';
 
         // 设置响应头
         res.writeHead(200, { 'Content-Type': contentType });
@@ -87,7 +73,7 @@ async function handleRequest(req, res) {
     return false
   }
 
-  console.log(router)
+  // console.log(router)
   if (method == "POST") {
     // 处理所有的POST请求
     for (let key in router) {
@@ -102,14 +88,14 @@ async function handleRequest(req, res) {
             bodyStr += dt;
           });
           req.on("end", function () {
-            resolve(JSON.parse(bodyStr))
+            resolve(JSON.parse(bodyStr), res)
           });
         })
 
         let body = await reqHandlerAsync
 
         // 调用save.js中的save函数，统一用Promise封装
-        return res.end(await router[key](body))
+        return res.end(JSON.stringify(await router[key](body), 'utf8'))
       }
     }
     return false
@@ -120,7 +106,7 @@ async function handleRequest(req, res) {
 function cpConfigFile() {
   // 复制配置文件
   let cwd = process.cwd()
-  
+
   let configFile = path.join(__dirname, "./config/point.xlsx");
   let newConfigFile = path.join(cwd, "point.xlsx");
 

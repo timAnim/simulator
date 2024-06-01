@@ -2,14 +2,21 @@ const { connect, StringCodec, consumerOpts } = require("nats");
 
 module.exports = async function (body) {
     try {
-        // 连接 nats
-        console.log(body.data, `${NATS_SERVER}:${NATS_PORT}`)
-        await Publish(body.data);
-        return "Success"
+        // console.log(body.data, `${NATS_SERVER}:${NATS_PORT}`)
+        
+        let result = await Publish(body.data);
+        return {
+            code: 200,
+            msg: "Success",
+            data: result
+        }
     } catch (error) {
-        console.error(error);
         res.statusCode = 500;
-        return error.toString("utf8")
+        return {
+            code: 500,
+            msg: "发布失败",
+            data: error
+        }
 
     } finally {
     }

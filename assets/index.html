@@ -60,9 +60,6 @@
 				hook: {
 					cellDragStop,
 					cellUpdated,
-					cellEditBefore: function (a, b, c) {
-						console.log('cellEditBefore', a, b, c)
-					},
 					workbookCreateAfter: function () {
 						console.log('workbookCreateAfter')
 					}
@@ -70,7 +67,7 @@
 			}
 
 			LuckyExcel.transformExcelToLuckyByUrl(
-				"/config/point.xlsx",
+				"/usr/point",
 				server,
 				sheetInited,
 			);

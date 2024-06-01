@@ -9,5 +9,5 @@ function ajax(url, data, method, cb) {
             data,
         })
     );
-    if (cb) cb(httpRequest.response);
+    if (cb) cb(JSON.parse(httpRequest.response, 'utf8'));
 }

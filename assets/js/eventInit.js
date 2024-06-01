@@ -1,59 +1,41 @@
 
 function eventInit() {
-    let upload = document.getElementById("Luckyexcel-demo-file");
-    let downloadBtn = document.getElementById("Luckyexcel-downlod-file");
+    let importHdl = document.getElementById("Luckyexcel-demo-file");
+    let saveasBtn = document.getElementById("Luckyexcel-downlod-file");
     let saveBtn = document.getElementById("Luckyexcel-save-file")
     let sendBtn = document.getElementById("send-btn");
-    let uploadBtn = document.getElementById("Luckyexcel-import");
+    let importBtn = document.getElementById("Luckyexcel-import");
     let driverBtn = document.getElementById("Luckyexcel-driver");
 
-    upload.addEventListener("change", function (evt) {
-        var files = evt.target.files;
-        if (files == null || files.length == 0) {
-            alert("No files wait for import");
-            return;
-        }
+    importHdl.addEventListener("change", function (ev) {
+        var files = ev.target.files;
+        if (files == null || files.length == 0) return notice("请检查选择的文件")
 
         let name = files[0].name;
         let suffixArr = name.split("."),
             suffix = suffixArr[suffixArr.length - 1];
-        if (suffix != "xlsx") {
-            alert("Currently only supports the import of xlsx files");
-            return;
-        }
+        if (suffix != "xlsx") return notice("仅支持xlsx文件类型")
+
         LuckyExcel.transformExcelToLucky(
             files[0],
-            function (exportJson, luckysheetfile) {
-                if (
-                    exportJson.sheets == null ||
-                    exportJson.sheets.length == 0
-                ) {
-                    alert(
-                        "Failed to read the content of the excel file, currently does not support xls files!"
-                    );
-                    return;
-                }
+            function (exportJson, luckysheetfl) {
+                if (!exportJson.sheets || !checkluckysheetJson(exportJson.sheets)) return notice('请检查文件格式')
                 window.luckysheet.destroy();
                 window.luckysheetOptions.data = exportJson.sheets
                 window.luckysheetOptions.title = exportJson.info.name
                 window.luckysheet.create(window.luckysheetOptions);
+                notice('操作成功')
+                eventInit()
             }
         );
-        notice('操作成功')
     });
 
-    uploadBtn.addEventListener("click", function (evt) {
-        upload.click();
+    importBtn.addEventListener("click", function (ev) {
+        importHdl.click();
     });
 
-    downloadBtn.addEventListener("click", function (evt) {
-        let luckysheetfl = luckysheet.getluckysheetfile();
-
-        ajax("/saveas", luckysheetfl, "POST", function (res) {
-            console.log(res)
-            // if (res) downloadByUrl(res, "point.xlsx");
-            if (res) downloadByUrl('./point.xlsx', "point.xlsx");
-        });
+    saveasBtn.addEventListener("click", function (ev) {
+        downloadByUrl("/usr/point", "point.xlsx");
     });
 
     sendBtn.addEventListener("click", function () {
@@ -64,13 +46,17 @@ function eventInit() {
             point_data = sendDCSheet(luckysheet.getAllSheets()[1])
         }
         ajax("/publish", point_data, "POST", function (data) {
-            console.log(data);
-            notice('操作成功')
+            if (data.code != 200) return notice('发布失败')
+            notice('发布成功')
         });
     });
 
-    saveBtn.addEventListener("click", function (evt) {
+    saveBtn.addEventListener("click", function (ev) {
+        console.log(ev.target)
         luckysheetfl = luckysheet.getluckysheetfile()
+
+        if (!checkluckysheetJson(luckysheetfl)) return notice('请检查文件格式')
+
         luckysheetfl.forEach(fl => {
             fl.data = luckysheet.getSheetData({ order: fl.order })
         })
@@ -82,12 +68,11 @@ function eventInit() {
 
     driverBtn.addEventListener("click", genDriver);
 
-    document.body.addEventListener('keydown', function (evt){
-        if(evt.ctrlKey && evt.key == "s"){
+    document.body.addEventListener('keydown', function (evt) {
+        if (evt.ctrlKey && evt.key == "s") {
             saveBtn.click()
         }
     })
-
 
 }
 
@@ -182,6 +167,10 @@ function downloadByUrl(url, name) {
 }
 
 function genDriver(ev) {
+    if (!checkluckysheetJson(luckysheet.getAllSheets())) {
+        console.log(luckysheet.getAllSheets())
+        return notice("请检查数据")
+    }
     let arr = luckysheet.getAllSheets()[1].data
 
     let resArr = [];
@@ -254,17 +243,16 @@ function genDriver(ev) {
     }
 
     LuckyExcel.transformExcelToLuckyByUrl(
-        "./driver.xlsx",
+        "/usr/driver",
         'driver',
         function (exportJson, luckysheetfile) {
             if (
-                exportJson.sheets == null ||
-                exportJson.sheets.length == 0
+                !exportJson.sheets ||
+                !exportJson.sheets.length ||
+                exportJson.sheets[0].name != "设备信息表"
             ) {
-                alert(
-                    "Failed to read the content of the excel file, currently does not support xls files!"
-                );
-                return;
+                console.log(exportJson.sheets)
+                return notice("请检查驱动文件模板")
             }
 
             exportJson.sheets.forEach(sheet => {
@@ -275,10 +263,8 @@ function genDriver(ev) {
             exportJson.sheets[1].data = tranCelldataToData(driver);
 
             ajax("/driver", exportJson.sheets, "POST", function (res) {
-                console.log(res)
-
-                notice('操作成功')
-                downloadByUrl(res, "driver.xlsx");
+                if (res.code != 200) return notice(res.msg)
+                downloadByUrl("/usr/driver", "driver.xlsx");
             })
         }
     );
@@ -286,7 +272,6 @@ function genDriver(ev) {
     function tranCelldataToData(celldata) {
         let resArr = [];
         celldata.forEach(cell => {
-            console.log(cell)
             if (!resArr[cell.r]) {
                 resArr[cell.r] = []
             }
@@ -310,4 +295,16 @@ async function wait(time) {
             resolve()
         }, time)
     })
+}
+
+function checkluckysheetJson(luckysheetfl) {
+
+    if (!luckysheetfl ||
+        !luckysheetfl.length ||
+        luckysheetfl.length != 2 ||
+        luckysheetfl[0].name != "测点模拟" ||
+        luckysheetfl[1].name != "DC模型模拟"
+    ) return false
+
+    return true
 }

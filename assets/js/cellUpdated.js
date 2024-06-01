@@ -37,19 +37,13 @@ function updatePointSheet(r, c, oldValue, newValue, isRefresh) {
         { resource_id: newValue },
         "POST",
         (res) => {
-            res = JSON.parse(res);
-            if (res.data && res.data.resources) {
-                console.log(res.data.resources);
+            if (res.data && res.data.resources && res.data.resources.length) {
                 luckysheet.setCellValue(r, 0, "通过");
-                luckysheet.setCellValue(
-                    r,
-                    3,
-                    res.data.resources[0].attributes._location_translated
-                );
+                luckysheet.setCellValue(r, 3, res.data.resources[0].attributes._location_translated);
             } else {
-                console.log(res.data.resources);
+                luckysheet.setCellValue(r, 0, "-");
+                luckysheet.setCellValue(r, 3, '');
             }
-
         }
     );
 }

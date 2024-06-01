@@ -1,5 +1,7 @@
+const { resolve } = require('path');
 const ExcelJS = require('./exceljs.bare.min.js');
 const fs = require('fs');
+const { rejects } = require('assert');
 let columnWidth
 
 
@@ -12,7 +14,6 @@ var exportExcel = async function (luckysheet, filePath) {
     columnWidth = luckysheet[1].config.columnlen
 
     luckysheet.every(function (table) {
-
         if (table.data.length === 0) return true;
 
         const worksheet = workbook.addWorksheet(table.name);
@@ -28,17 +29,19 @@ var exportExcel = async function (luckysheet, filePath) {
     // 4.写入 buffer
     const buf = await workbook.xlsx.writeBuffer();
     // 下载 excel
-    workbook.xlsx.writeBuffer().then((buf) => {
-
-        fs.writeFile(filePath, buf, (err) => {
+    
+    let result = await new Promise((resolve, reject) => {
+        return fs.writeFile(filePath, buf, (err) => {
             if (err) {
                 console.error('写入文件时发生错误:', err);
-                return Promise.resolve(filePath);
+                return resolve(null);
             }
-            console.log('文件已成功写入:' + filePath);
-            return Promise.resolve();
+            // console.log('文件已成功写入:' + filePath);
+            return resolve(filePath);
         });
-    });
+    })
+
+    return result
 };
 
 var setMerge = function (luckyMerge = {}, worksheet) {

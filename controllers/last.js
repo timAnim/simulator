@@ -1,12 +1,14 @@
 const http = require("http");
 const https = require("https");
 
-module.exports = async function (data) {
-
+module.exports = async function (body) {
     let reqData = {
-        "translate": 1, "where": [{
+        "translate": 1,
+        "where": [{
             "terms": [{
-                "field": "resource_id", "operator": "eq", "value": data.resource_id
+                "field": "resource_id",
+                "operator": "eq",
+                "value": body.data.resource_id
             }]
         }]
     }
@@ -39,7 +41,7 @@ module.exports = async function (data) {
             });
             keRes.on("end", (t) => {
                 let result = JSON.parse(resStr)
-                if (result.error_code == '00') resolve(resStr)
+                if (result.error_code == '00') resolve(result)
                 else reject('获取实时值错误')
             });
         })
