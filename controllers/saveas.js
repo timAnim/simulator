@@ -4,5 +4,5 @@ module.exports = async body => {
     await exportExcel(body.data, global.CONFIG.POINT_USER)
 
     // async 关键字返回的是异步对象
-    return "/config/point.xlsx"
+    return global.CONFIG.POINT_DOWNLOAD
 }

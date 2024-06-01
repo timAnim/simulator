@@ -39,6 +39,7 @@ function eventInit() {
                 window.luckysheet.create(window.luckysheetOptions);
             }
         );
+        notice('操作成功')
     });
 
     uploadBtn.addEventListener("click", function (evt) {
@@ -50,7 +51,8 @@ function eventInit() {
 
         ajax("/saveas", luckysheetfl, "POST", function (res) {
             console.log(res)
-            if (res) downloadByUrl(res, "output_point.xlsx");
+            // if (res) downloadByUrl(res, "point.xlsx");
+            if (res) downloadByUrl('./point.xlsx', "point.xlsx");
         });
     });
 
@@ -63,6 +65,7 @@ function eventInit() {
         }
         ajax("/publish", point_data, "POST", function (data) {
             console.log(data);
+            notice('操作成功')
         });
     });
 
@@ -73,10 +76,17 @@ function eventInit() {
         })
         ajax("/save", luckysheetfl, "POST", function (res) {
             console.log(res);
+            notice('操作成功')
         })
     });
 
-    driverBtn.addEventListener("click", genDriver)
+    driverBtn.addEventListener("click", genDriver);
+
+    document.body.addEventListener('keydown', function (evt){
+        if(evt.ctrlKey && evt.key == "s"){
+            saveBtn.click()
+        }
+    })
 
 
 }
@@ -244,7 +254,7 @@ function genDriver(ev) {
     }
 
     LuckyExcel.transformExcelToLuckyByUrl(
-        "/config/driver.xlsx",
+        "./driver.xlsx",
         'driver',
         function (exportJson, luckysheetfile) {
             if (
@@ -265,6 +275,9 @@ function genDriver(ev) {
             exportJson.sheets[1].data = tranCelldataToData(driver);
 
             ajax("/driver", exportJson.sheets, "POST", function (res) {
+                console.log(res)
+
+                notice('操作成功')
                 downloadByUrl(res, "driver.xlsx");
             })
         }
@@ -281,4 +294,20 @@ function genDriver(ev) {
         })
         return resArr
     }
+}
+
+async function notice(msg) {
+    let _notice = document.getElementById("simu-notice")
+    _notice.innerText = msg
+    _notice.setAttribute('status', "on")
+    await wait(3000)
+    _notice.setAttribute('status', "off")
+}
+
+async function wait(time) {
+    return new Promise((resolve, reject) => {
+        setTimeout(t => {
+            resolve()
+        }, time)
+    })
 }

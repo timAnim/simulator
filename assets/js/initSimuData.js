@@ -50,7 +50,7 @@ function refreshDCSheet() {
             point_id = `${dev_id}_${point_type}_${start_id + i - 4}_${additional_id}`
 
             // 针对第一列的每一个分类创建一个对象
-            if (!window[row[0]]) window[row[0]] = {};
+            if (row && row[0] && !window[row[0]]) window[row[0]] = {};
 
             // 全局对象赋值
             if (!row[2]) continue

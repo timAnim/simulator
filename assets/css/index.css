@@ -24,6 +24,34 @@
     outline: none;
 }
 
-#luckysheet_info_detail button{
-    padding:3px 6px;font-size: 12px;margin-right: 10px;
+#luckysheet_info_detail button {
+    padding: 3px 6px;
+    font-size: 12px;
+    margin-right: 10px;
+}
+
+.simu-notice {
+    position: absolute;
+    display: block;
+    left: 50%;
+    top: 16px;
+    width: 320px;
+    margin-left: -160px;
+    line-height: 1.25em;
+    padding: 8px 16px;
+    background-color: #ffecb3;
+    box-shadow: 0 6px 12px #00000061;
+    border-radius: 32px;
+    z-index: 999;
+    box-sizing: border-box;
+    color: #424242;
+    font-size: 12px;
+    transition: all 0.2s ease;
+    transform: translateY(-120px);
+    opacity: 0;
+}
+
+.simu-notice[status="on"]{
+    transform: translateY(-0);
+    opacity: 1;
 }
